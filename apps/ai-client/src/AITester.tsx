@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from "react";
 import { useChat, fetchServerSentEvents } from "@tanstack/ai-react";
-
+import { clientTools, createChatClientOptions } from "@tanstack/ai-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getXAUTPriceDef } from "@/tool";
 
 const MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B" },
@@ -25,11 +26,22 @@ interface FormattedMessage {
   id: string;
   role: string;
   content: string;
+  createdAt: Date;
 }
 
 export function AITester() {
   const [input, setInput] = useState<string>("");
   const [formattedMessages, setFormattedMessages] = useState<FormattedMessage[]>([]);
+
+  const getXAUTPrice = getXAUTPriceDef.client(() => {
+    return { price: 3700 };
+  });
+
+  const tools = clientTools(getXAUTPrice);
+  const chatOptions = createChatClientOptions({
+    connection: fetchServerSentEvents("/api/ai/chat"),
+    tools,
+  });
 
   const {
     messages,
@@ -37,24 +49,26 @@ export function AITester() {
     append,
     stop,
     isLoading
-  } = useChat({
-    connection: fetchServerSentEvents("/api/ai/chat"),
-  });
+  } = useChat(chatOptions);
 
   const formatMessages = useCallback((currentMessages) => {
     const newFormattedMessages = [];
     let idCounter = 0;
     for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
       const message = messages[messageIndex];
+      console.log({ message });
+      if (!message.parts) continue;
+
       for (let partIndex = 0; partIndex < message.parts.length; partIndex++) {
         const part = message.parts[partIndex];
-	if (part.type != "text") return;
+	if (part.type != "text") continue;
 
 	idCounter++;
 	const newMessage = {
 	  id: "" + idCounter,
 	  role: message.role,
 	  content: part.content,
+	  createdAt: message.createdAt,
 	};
 	newFormattedMessages.push(newMessage);
       }

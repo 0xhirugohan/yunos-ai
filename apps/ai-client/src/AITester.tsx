@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from "react";
 import { useChat, fetchServerSentEvents } from "@tanstack/ai-react";
 import { clientTools, createChatClientOptions } from "@tanstack/ai-client";
+import { useStream } from "@langchain/langgraph-sdk/react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +40,23 @@ export function AITester() {
   const [input, setInput] = useState<string>("");
   const [formattedMessages, setFormattedMessages] = useState<FormattedMessage[]>([]);
 
+  const stream = useStream({
+    assistantId: "agent",
+    apiUrl: "http://localhost:3000/langchainai/stream",
+  });
+
+  const handleSubmit = (message: string) => {
+    stream.submit({
+      messages: [
+        { content: message, type: "human" }
+      ],
+    });
+  }
+
+  useEffect(() => {
+    console.log({ messages: stream.messages });
+  }, [stream.messages]);
+
   const getXAUTPrice = getXAUTPriceDef.client(() => {
     return { price: 3700 };
   });
@@ -61,7 +80,7 @@ export function AITester() {
     // getPrice,
   );
   const chatOptions = createChatClientOptions({
-    connection: fetchServerSentEvents("/api/ai/chat"),
+    connection: fetchServerSentEvents("/api/langchainai/stream"),
     // tools,
   });
 
@@ -78,6 +97,7 @@ export function AITester() {
     let idCounter = 0;
     for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
       const message = messages[messageIndex];
+      console.log({ message });
       if (!message.parts) continue;
 
       for (let partIndex = 0; partIndex < message.parts.length; partIndex++) {
@@ -110,6 +130,7 @@ export function AITester() {
     setInput(newInput.target.value);
   }
 
+  /*
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
@@ -117,6 +138,7 @@ export function AITester() {
       setInput("");
     }
   }
+ */
 
   return (
     <div className="flex flex-col gap-6">

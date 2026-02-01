@@ -3,6 +3,8 @@ import { chat, toServerSentEventsResponse, toolDefinition } from "@tanstack/ai";
 import { openRouterText } from "@tanstack/ai-openrouter";
 import { z } from "zod";
 import OpenAI from "openai";
+import { createAgent, tool } from "langchain";
+import * as z from "zod";
 
 import index from "./index.html";
 import {
@@ -72,6 +74,83 @@ const getWeatherDef = toolDefinition({
   inputSchema,
   outputSchema,
 });
+
+const getWeather = tool(
+  (input) => `It's always sunny in ${input.city}`,
+  {
+    name: "get_weather",
+    description: "Get the weather for a given city",
+    schema: z.object({
+      city: z.string().describe("The city to get the weather for"),
+    }),
+  },
+);
+
+const langchainAIHandler = async req => {
+  const responseFormat = z.object({
+    punny_response: z.string(),
+    professional_response: z.string(),
+    casual_response: z.string(),
+  });
+
+  const agent = createAgent({
+    model: "gpt-5-nano-2025-08-07",
+    tools: [getWeather],
+    responseFormat,
+  });
+
+  const result = await agent.invoke({
+    messages: [
+      {
+        role: "user",
+	content: "What's the weather in Tokyo?",
+      },
+    ],
+  });
+
+  console.log({ result });
+
+  console.log(result.structuredResponse);
+
+  return Response.json({
+    message: "ok",
+  });
+};
+
+const langchainAIStreamHandler = async req => {
+  const responseFormat = z.object({
+    friendly_response: z.string(),
+  });
+
+  const agent = createAgent({
+    model: "gpt-5-nano-2025-08-07",
+    tools: [getWeather],
+    responseFormat,
+  });
+
+  const stream = await agent.stream({
+    messages: [
+      {
+        role: "user",
+	content: "What's the weather in Tokyo?",
+      },
+    ]
+  },
+  { streamMode: "messages" },
+  );
+
+  for await (const chunk of stream) {
+    const latestMessage = chunk.messages.at(-1);
+    if (latestMessage?.content) {
+      console.log(`Agent: ${latestMessage.content}`);
+    } else if (latestMessage?.tool_calls) {
+      const toolCallNames = latestMessage.tool_calls.map((tc) => tc.name);
+      console.log(`Calling tools: ${toolCallNames.join(", ")}`);
+    }
+  }
+
+  return toServerSentEventsResponse(stream);
+};
 
 const client = new OpenAI();
 
@@ -207,6 +286,14 @@ const server = serve({
 
     "/api/openai/chat": {
       POST: openAIHandler,
+    },
+
+    "/api/langchainai/chat": {
+      POST: langchainAIHandler,
+    },
+
+    "/api/langchainai/stream": {
+      POST: langchainAIStreamHandler,
     },
 
     "/api/hello": {

@@ -3,6 +3,11 @@ import { chat, toServerSentEventsResponse, toolDefinition } from "@tanstack/ai";
 import { openRouterText } from "@tanstack/ai-openrouter";
 import { z } from "zod";
 import index from "./index.html";
+import {
+  fetchPriceDef,
+  getPriceDef,
+  getCryptoPriceDef,
+} from "@/tool";
 
 const getXAUTPriceInputSchema: JSONSchema = {
   type: "object",
@@ -86,6 +91,19 @@ const aiHandler = async req => {
     return await response.json();
   });
 
+  const fetchPrice = fetchPriceDef.server(({ symbol }) => {
+    return { symbol, price: 6969 };
+  });
+
+  const getPrice = getPriceDef.server(({ symbol }) => {
+    return { symbol, price: 69696 };
+  });
+
+  const getCryptoPrice = getCryptoPriceDef.server(({ symbol }) => {
+    console.log("calling get crypto price");
+    return { symbol, price: 6969 };
+  });
+
   const stream = chat({
     // adapter: openRouterText("google/gemma-3n-e2b-it:free"),//openRouterText("arcee-ai/trinity-large-preview:free"),
     adapter: openRouterText("arcee-ai/trinity-large-preview:free"),
@@ -94,14 +112,17 @@ const aiHandler = async req => {
     systemPrompts: [
       "You are Yunos, from Yunos AI",
       "You are an agentic on-chain fund manager to hedge your money and act as an agentic wallet interface",
+      "You MUST use the get_crypto_price tool whenever the user asks for a token price. Do not answer price questions directly.",
       "You reply by chat, by default your reply is brief unless user ask for a detailed response but never in markdown format",
       "Your wording tone is friendly but professional",
       "You don't speak financial and crypto lingo but you understand them if user ask it",
-      "If user ask you about prices, use tools to get prices",
     ],
     tools: [
       // getXAUTPrice,
       getWeather,
+      // fetchPrice,
+      getCryptoPrice,
+      // getPrice,
     ],
   });
   

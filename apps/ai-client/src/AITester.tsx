@@ -15,7 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getXAUTPriceDef } from "@/tool";
+import {
+  getXAUTPriceDef,
+  fetchPriceDef,
+  getPriceDef,
+  getCryptoPriceDef,
+} from "@/tool";
 
 const MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B" },
@@ -37,10 +42,27 @@ export function AITester() {
     return { price: 3700 };
   });
 
-  const tools = clientTools(getXAUTPrice);
+  const fetchPrice = fetchPriceDef.client(({ symbol }) => {
+    return { symbol, price: 6969 };
+  });
+
+  const getPrice = getPriceDef.client(({ symbol }) => {
+    return { symbol, price: 69696 };
+  });
+
+  const getCryptoPrice = getCryptoPriceDef.client(({ symbol }) => {
+    return { symbol, price: 696 };
+  });
+
+  const tools = clientTools(
+    // getXAUTPrice,
+    // fetchPrice,
+    // getCryptoPrice,
+    // getPrice,
+  );
   const chatOptions = createChatClientOptions({
     connection: fetchServerSentEvents("/api/ai/chat"),
-    tools,
+    // tools,
   });
 
   const {
@@ -56,12 +78,14 @@ export function AITester() {
     let idCounter = 0;
     for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
       const message = messages[messageIndex];
-      console.log({ message });
       if (!message.parts) continue;
 
       for (let partIndex = 0; partIndex < message.parts.length; partIndex++) {
         const part = message.parts[partIndex];
-	if (part.type != "text") continue;
+	if (part.type != "text") {
+	  console.log({ part });
+	  continue;
+	}
 
 	idCounter++;
 	const newMessage = {

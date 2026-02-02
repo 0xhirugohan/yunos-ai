@@ -30,6 +30,7 @@ const searchPersonTool = searchPersonDef.server(({ name }) => {
 });
 
 const weatherTool = tool({
+  name: "Weather Tool",
   description: "Get the current weather in a given location",
   inputSchema: z.object({
     location: z.string().describe("The location to get the weather for"),
@@ -39,6 +40,11 @@ const weatherTool = tool({
     { input: { location: "San Francisco, CA" } },
     { input: { location: "Boston, MA" } },
   ],
+  outputSchema: z.object({
+    location: z.string(),
+    unit: z.enum(["celcius", "fahrenheit"]),
+    degree: z.number(),
+  }),
   strict: true,
   execute: async ({ location, unit = "celcius" }) => {
     console.log("calling weatherTool", location);
@@ -54,9 +60,8 @@ const weatherTool = tool({
     };
 
     const weather = weatherData[location];
-    if (!weather) return Math.floor(Math.random() * 40);
-    // return `The current weather in ${location} is ${weather[unit]}`;
-    return weather[unit];
+    const degree = Math.floor(Math.random() * 40);
+    return { location, unit, degree };
   },
 });
 
@@ -127,6 +132,7 @@ const vercelAiStreamHandler = async req => {
     system: systemPrompts.join(" "),
     messages: await convertToModelMessages(messages),
     tools: { weather_tool: weatherTool },
+    toolChoice: ["weather_tool"],
   });
 
   return response.toUIMessageStreamResponse();

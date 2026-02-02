@@ -164,6 +164,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     minute: "2-digit",
   })
 
+  /*
   if (isUser) {
     return (
       <div
@@ -195,6 +196,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       </div>
     )
   }
+  */
 
   if (parts && parts.length > 0) {
     return parts.map((part, index) => {
@@ -238,6 +240,19 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             toolInvocations={[part.toolInvocation]}
           />
         )
+      } else if (part.type.startsWith("tool-")) {
+	const toolInvocation: ToolInvocation = {
+	  ...part,
+	  result: { ...part.output },
+	  toolName: part.type,
+	  state: part.state === "output-available" ? "result" : "call",
+	};
+	return (
+	  <ToolCall
+	    key={`tool-${index}`}
+	    toolInvocations={[toolInvocation]}
+	  />
+	)
       }
       return null
     })

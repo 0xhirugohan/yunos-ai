@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AITester } from "./AITester";
+import { Chatbot } from "./Chatbot";
 import "./index.css";
 
 import logo from "./logo.svg";
@@ -29,7 +30,8 @@ export function App() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AITester />
+	  {/*<AITester />*/}
+	  <Chatbot />
         </CardContent>
       </Card>
     </div>

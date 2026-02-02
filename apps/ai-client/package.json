@@ -9,9 +9,11 @@
     "build": "bun run build.ts"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.69",
     "@langchain/core": "^1.1.18",
     "@langchain/langgraph-sdk": "^1.5.5",
     "@langchain/openai": "^1.2.4",
+    "@openrouter/ai-sdk-provider": "^2.1.1",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.6",
@@ -20,6 +22,7 @@
     "@tanstack/ai-client": "^0.3.0",
     "@tanstack/ai-openrouter": "^0.3.0",
     "@tanstack/ai-react": "^0.3.0",
+    "ai": "^6.0.67",
     "bun-plugin-tailwind": "^0.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -101,9 +101,43 @@ const getCryptoPriceDef = toolDefinition({
   outputSchema: getCryptoPriceOutputSchema,
 });
 
+const searchPersonInputSchema: JSONSchema = {
+  type: "object",
+  properties: {
+    name: {
+      type: "string",
+      description: "Person's name, e.g. Bill Gates, Elon Musk, etc",
+    },
+  },
+  required: ["name"],
+};
+
+const searchPersonOutputSchema: JSONSchema = {
+  type: "object",
+  properties: {
+    name: {
+      type: "string",
+      // description: "the symbol of token price being asked",
+    },
+    description: {
+      type: "string",
+      description: "the search result, describing the person in detail"
+    },
+  },
+  required: ["name", "description"],
+};
+
+const searchPersonDef = toolDefinition({
+  name: 'search_person_by_name',
+  description: 'Use this tool whenever the user asks for a person. Use "description" from the output schema and give it back to user. You MUST use this tool to answer who is this person questions.',
+  inputSchema: searchPersonInputSchema,
+  outputSchema: searchPersonOutputSchema,
+});
+
 export {
   getXAUTPriceDef,
   fetchPriceDef,
   getPriceDef,
   getCryptoPriceDef,
+  searchPersonDef,
 };

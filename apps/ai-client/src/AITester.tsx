@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from "react";
 import { useChat, fetchServerSentEvents } from "@tanstack/ai-react";
 import { clientTools, createChatClientOptions } from "@tanstack/ai-client";
-import { useStream } from "@langchain/langgraph-sdk/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getXAUTPriceDef,
-  fetchPriceDef,
-  getPriceDef,
-  getCryptoPriceDef,
-} from "@/tool";
 
 const MODELS = [
   { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B" },
@@ -40,72 +33,57 @@ export function AITester() {
   const [input, setInput] = useState<string>("");
   const [formattedMessages, setFormattedMessages] = useState<FormattedMessage[]>([]);
 
-  const stream = useStream({
-    assistantId: "agent",
-    apiUrl: "http://localhost:3000/langchainai/stream",
-  });
-
-  const handleSubmit = (message: string) => {
-    stream.submit({
-      messages: [
-        { content: message, type: "human" }
-      ],
-    });
-  }
-
-  useEffect(() => {
-    console.log({ messages: stream.messages });
-  }, [stream.messages]);
-
-  const getXAUTPrice = getXAUTPriceDef.client(() => {
-    return { price: 3700 };
-  });
-
-  const fetchPrice = fetchPriceDef.client(({ symbol }) => {
-    return { symbol, price: 6969 };
-  });
-
-  const getPrice = getPriceDef.client(({ symbol }) => {
-    return { symbol, price: 69696 };
-  });
-
-  const getCryptoPrice = getCryptoPriceDef.client(({ symbol }) => {
-    return { symbol, price: 696 };
-  });
-
-  const tools = clientTools(
-    // getXAUTPrice,
-    // fetchPrice,
-    // getCryptoPrice,
-    // getPrice,
-  );
   const chatOptions = createChatClientOptions({
-    connection: fetchServerSentEvents("/api/langchainai/stream"),
-    // tools,
+    connection: fetchServerSentEvents("/api/ai/chat"),
   });
 
   const {
     messages,
     sendMessage,
+    addToolResult,
     append,
     stop,
+    reload,
+    clear,
     isLoading
   } = useChat(chatOptions);
+
+  useEffect(() => {
+    console.log({ isLoading });
+  }, [isLoading]);
 
   const formatMessages = useCallback((currentMessages) => {
     const newFormattedMessages = [];
     let idCounter = 0;
     for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
       const message = messages[messageIndex];
+      let toolName = "";
       console.log({ message });
       if (!message.parts) continue;
 
       for (let partIndex = 0; partIndex < message.parts.length; partIndex++) {
         const part = message.parts[partIndex];
-	if (part.type != "text") {
-	  console.log({ part });
+	console.log({ part });
+
+	if (part.type == "tool-call") {
+	  toolName = part.name;
+	  continue;
+	} else if (part.type == "tool-result") {
+          const contentJSON = JSON.parse(part.content);
+
+	  idCounter++;
+	  const newMessage = {
+	    id: "" + idCounter,
+	    role: message.role,
+	    content: contentJSON["description"],
+	    createdAt: message.createdAt,
+	  };
+	  newFormattedMessages.push(newMessage);
+
 	  continue;
 	}
+
+	if (part.type != "text") continue;
 
 	idCounter++;
 	const newMessage = {
@@ -130,7 +108,6 @@ export function AITester() {
     setInput(newInput.target.value);
   }
 
-  /*
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
@@ -138,7 +115,6 @@ export function AITester() {
       setInput("");
     }
   }
- */
 
   return (
     <div className="flex flex-col gap-6">

@@ -11,10 +11,6 @@ const server = serve({
   routes: {
     "/*": index,
 
-    "/api/ai/chat": {
-      POST: aiHandler,
-    },
-
     "/api/vercel/chat": {
       POST: vercelAiChatHandler,
     },

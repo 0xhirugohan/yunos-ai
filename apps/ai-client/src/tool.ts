@@ -1,143 +1,43 @@
 import { toolDefinition } from "@tanstack/ai";
+import { tool } from "ai";
+import * as z from "zod";
 
-const getXAUTPriceInputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    time: {
-      type: "date",
-      description: "the time of price being asked, default latest (right now)",
-    },
+const weatherTool = tool({
+  name: "Weather Tool",
+  description: "Get the current weather in a given location",
+  inputSchema: z.object({
+    location: z.string().describe("The location to get the weather for"),
+    unit: z.enum(["celcius", "fahrenheit"]).optional(),
+  }),
+  inputExamples: [
+    { input: { location: "San Francisco, CA" } },
+    { input: { location: "Boston, MA" } },
+  ],
+  outputSchema: z.object({
+    location: z.string(),
+    unit: z.enum(["celcius", "fahrenheit"]),
+    degree: z.number(),
+  }),
+  strict: true,
+  execute: async ({ location, unit = "celcius" }) => {
+    console.log("calling weatherTool", location);
+    const weatherData = {
+      "Boston": {
+        celcius: "15 celcius",
+	fahrenheit: "59 fahrenheit",
+      },
+      "San Francisco": {
+        celcius: "19 celcius",
+	fahrenheit: "64 fahrenheit",
+      },
+    };
+
+    const weather = weatherData[location];
+    const degree = Math.floor(Math.random() * 40);
+    return { location, unit, degree };
   },
-};
-
-const getXAUTPriceOutputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    price: {
-      type: "number",
-      description: "the price of XAUT in USD"
-    },
-  },
-  required: ["price"],
-};
-
-const getXAUTPriceDef = toolDefinition({
-  name: 'get_XAUTPrice',
-  description: 'Get the latest price of XAUT token or known as Gold',
-  inputSchema: getXAUTPriceInputSchema,
-  outputSchema: getXAUTPriceOutputSchema,
-});
-
-const fetchPriceInputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    symbol: {
-      type: "string",
-      description: "the symbol of price being asked",
-    },
-  },
-  required: ["symbol"]
-};
-
-const fetchPriceOutputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    symbol: {
-      type: "string",
-      description: "the symbol of price being asked",
-    },
-    price: {
-      type: "number",
-      description: "the price of symbol being asked in USD",
-    },
-  },
-  required: ["symbol", "price"],
-};
-
-const fetchPriceDef = toolDefinition({
-  name: 'fetch_price',
-  description: 'Get the latest price of something based on the symbol given by user',
-  inputSchema: fetchPriceInputSchema,
-  outputSchema: fetchPriceOutputSchema,
-});
-
-const getPriceDef = toolDefinition({
-  name: 'get_price',
-  description: 'Get the latest price of something based on the symbol given by user',
-  inputSchema: fetchPriceInputSchema,
-  outputSchema: fetchPriceOutputSchema,
-});
-
-const getCryptoPriceInputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    symbol: {
-      type: "string",
-      description: "Cryptocurrency ticker symbol (e.g. BTC, ETH)",
-    },
-  },
-  required: ["symbol"],
-};
-
-const getCryptoPriceOutputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    symbol: {
-      type: "string",
-      // description: "the symbol of token price being asked",
-    },
-    price: {
-      type: "number",
-      // description: "the price of cryptocurrency token in USD"
-    },
-  },
-  required: ["symbol", "price"],
-};
-
-const getCryptoPriceDef = toolDefinition({
-  name: 'get_crypto_price',
-  description: 'Use this tool whenever the user asks for the current or latest price of a cryptocurrency token in USD. Use "price" from the output schema and give it back to user. You MUST use this tool to answer price questions.',
-  inputSchema: getCryptoPriceInputSchema,
-  outputSchema: getCryptoPriceOutputSchema,
-});
-
-const searchPersonInputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    name: {
-      type: "string",
-      description: "Person's name, e.g. Bill Gates, Elon Musk, etc",
-    },
-  },
-  required: ["name"],
-};
-
-const searchPersonOutputSchema: JSONSchema = {
-  type: "object",
-  properties: {
-    name: {
-      type: "string",
-      // description: "the symbol of token price being asked",
-    },
-    description: {
-      type: "string",
-      description: "the search result, describing the person in detail"
-    },
-  },
-  required: ["name", "description"],
-};
-
-const searchPersonDef = toolDefinition({
-  name: 'search_person_by_name',
-  description: 'Use this tool whenever the user asks for a person. Use "description" from the output schema and give it back to user. You MUST use this tool to answer who is this person questions.',
-  inputSchema: searchPersonInputSchema,
-  outputSchema: searchPersonOutputSchema,
 });
 
 export {
-  getXAUTPriceDef,
-  fetchPriceDef,
-  getPriceDef,
-  getCryptoPriceDef,
-  searchPersonDef,
+  weatherTool,
 };

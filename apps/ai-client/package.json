@@ -1,0 +1,51 @@
+{
+  "name": "bun-react-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/server.ts",
+    "start": "NODE_ENV=production bun src/server.ts",
+    "build": "bun run build.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^3.0.69",
+    "@langchain/core": "^1.1.18",
+    "@langchain/langgraph-sdk": "^1.5.5",
+    "@langchain/openai": "^1.2.4",
+    "@openrouter/ai-sdk-provider": "^2.1.1",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tanstack/ai": "^0.3.0",
+    "@tanstack/ai-client": "^0.3.0",
+    "@tanstack/ai-openrouter": "^0.3.0",
+    "@tanstack/ai-react": "^0.3.0",
+    "ai": "^6.0.67",
+    "bun-plugin-tailwind": "^0.1.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "11",
+    "langchain": "^1.2.16",
+    "lucide-react": "^0.545.0",
+    "next-themes": "^0.4.6",
+    "openai": "^6.17.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-markdown": "10",
+    "remark-gfm": "4",
+    "remeda": "2",
+    "shiki": "1",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bun": "latest",
+    "tailwindcss": "^4.1.11",
+    "tw-animate-css": "^1.4.0"
+  }
+}

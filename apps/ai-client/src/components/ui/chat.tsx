@@ -35,6 +35,7 @@ interface ChatPropsBase {
   ) => void
   setMessages?: (messages: any[]) => void
   transcribeAudio?: (blob: Blob) => Promise<string>
+  setToolApprovalResponse?: (options: { id: string; approved: boolean }) => void
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -62,6 +63,7 @@ export function Chat({
   onRateResponse,
   setMessages,
   transcribeAudio,
+  setToolApprovalResponse,
 }: ChatProps) {
   const lastMessage = messages.at(-1)
   const isEmpty = messages.length === 0
@@ -207,6 +209,7 @@ export function Chat({
             messages={messages}
             isTyping={isTyping}
             messageOptions={messageOptions}
+	    setToolApprovalResponse={setToolApprovalResponse}
           />
         </ChatMessages>
       ) : null}

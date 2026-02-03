@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/collapsible"
 import { FilePreview } from "@/components/ui/file-preview"
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
+import { Button } from "@/components/ui/button"
 
 const chatBubbleVariants = cva(
   "group/message relative break-words rounded-lg p-3 text-sm sm:max-w-[70%]",
@@ -70,6 +71,16 @@ interface ToolCall {
   toolName: string
 }
 
+interface ToolApproval {
+  state: "approval-requested" | "approval-responded" | "output-denied"
+  toolName: string
+}
+
+interface ToolError {
+  state: "output-error"
+  toolName: string
+}
+
 interface ToolResult {
   state: "result"
   toolName: string
@@ -79,7 +90,7 @@ interface ToolResult {
   }
 }
 
-type ToolInvocation = PartialToolCall | ToolCall | ToolResult
+type ToolInvocation = PartialToolCall | ToolCall | ToolResult | ToolApproval | ToolError
 
 interface ReasoningPart {
   type: "reasoning"
@@ -128,6 +139,7 @@ export interface Message {
   experimental_attachments?: Attachment[]
   toolInvocations?: ToolInvocation[]
   parts?: MessagePart[]
+  setToolApprovalResponse?: (options: { id: string; approved: boolean }) => void;
 }
 
 export interface ChatMessageProps extends Message {
@@ -146,6 +158,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   experimental_attachments,
   toolInvocations,
   parts,
+  setToolApprovalResponse,
 }) => {
   const files = useMemo(() => {
     return experimental_attachments?.map((attachment) => {
@@ -241,16 +254,27 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           />
         )
       } else if (part.type.startsWith("tool-")) {
+	console.log({ state: part.state });
+	console.log({ part });
+	let state = "call";
+	if (part.state === "approval-requested") state = "approval-requested";
+	else if (part.state === "approval-responded") state = "approval-responded";
+	else if (part.state === "output-available") state = "result";
+	else if (part.state === "output-error") state = "output-error";
+	else if (part.state === "output-denied") state = "output-denied";
+
 	const toolInvocation: ToolInvocation = {
 	  ...part,
 	  result: { ...part.output },
 	  toolName: part.type,
-	  state: part.state === "output-available" ? "result" : "call",
+	  state,
 	};
+	console.log({ toolInvocation });
 	return (
 	  <ToolCall
 	    key={`tool-${index}`}
 	    toolInvocations={[toolInvocation]}
+	    setToolApprovalResponse={setToolApprovalResponse}
 	  />
 	)
       }
@@ -335,14 +359,21 @@ const ReasoningBlock = ({ part }: { part: ReasoningPart }) => {
   )
 }
 
+interface ToolCallInterface {
+  toolInvocations: Pick<ChatMessageProps, "toolInvocations">
+  setToolApprovalResponse?: Pick<Message, "setToolApprovalResponse">
+}
+
 function ToolCall({
   toolInvocations,
-}: Pick<ChatMessageProps, "toolInvocations">) {
+  setToolApprovalResponse,
+}): ToolCallInterface {
   if (!toolInvocations?.length) return null
 
   return (
     <div className="flex flex-col items-start gap-2">
       {toolInvocations.map((invocation, index) => {
+	console.log({ invocation, index });
         const isCancelled =
           invocation.state === "result" &&
           invocation.result.__cancelled === true
@@ -367,6 +398,24 @@ function ToolCall({
         }
 
         switch (invocation.state) {
+	  case "output-error":
+	    return (
+	      <div
+                key={index}
+                className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+              >
+                <Ban className="h-4 w-4" />
+                <span>
+                  Failed to call{" "}
+                  <span className="font-mono">
+                    {"`"}
+                    {invocation.toolName}
+                    {"`"}
+                  </span>
+                </span>
+              </div>
+	    )
+
           case "partial-call":
           case "call":
             return (
@@ -387,6 +436,77 @@ function ToolCall({
                 <Loader2 className="h-3 w-3 animate-spin" />
               </div>
             )
+	  case "approval-requested":
+            return (
+	      <div
+                key={index}
+                className="flex flex-col gap-1.5 rounded-lg border bg-muted/50 px-3 py-2 text-sm"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>
+                    Waiting Approval from{" "}
+                    <span className="font-mono">
+                      {"`"}
+                      {invocation.toolName}
+                      {"`"}
+                    </span>
+                  </span>
+                </div>
+                <pre className="overflow-x-auto whitespace-pre-wrap text-foreground">
+                  {JSON.stringify(invocation.input, null, 2)}
+                </pre>
+		<div className="flex gap-x-4 justify-center">
+		  <Button
+		    type="button"
+		    className="px-4 h-8 w-20 transition-opacity"
+		    aria-label="Approve Tool"
+		    onClick={() => 
+		      setToolApprovalResponse?.({
+		        id: invocation.approval.id,
+			approved: true,
+		      })
+		    }
+		  >
+		    Approve
+		  </Button>
+		  <Button
+		    type="button"
+		    className="px-4 h-8 w-20 transition-opacity"
+		    aria-label="Reject Tool"
+		    onClick={() => 
+		      setToolApprovalResponse?.({
+		        id: invocation.approval.id,
+			approved: false,
+		      })
+		    }
+		  >
+		    Reject
+		  </Button>
+		</div>
+              </div>
+	    )
+	  case "approval-responded":
+          case "output-denied":
+	    return (
+	      <div
+                key={index}
+                className="flex flex-col gap-1.5 rounded-lg border bg-muted/50 px-3 py-2 text-sm"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Ban className="h-4 w-4" />
+                  <span>
+                    User{" "}{invocation.approval.approved ? "Approved" : "Rejected"}{" "}Approval from{" "}
+                    <span className="font-mono">
+                      {"`"}
+                      {invocation.toolName}
+                      {"`"}
+                    </span>
+                  </span>
+                </div>
+              </div>
+	    )
+
           case "result":
             return (
               <div

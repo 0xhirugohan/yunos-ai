@@ -14,6 +14,7 @@ interface MessageListProps {
   messageOptions?:
     | AdditionalMessageOptions
     | ((message: Message) => AdditionalMessageOptions)
+  setToolApprovalResponse?: (options: { id: string; approved: boolean }) => void
 }
 
 export function MessageList({
@@ -21,6 +22,7 @@ export function MessageList({
   showTimeStamps = true,
   isTyping = false,
   messageOptions,
+  setToolApprovalResponse,
 }: MessageListProps) {
   return (
     <div className="space-y-4 overflow-visible">
@@ -34,6 +36,7 @@ export function MessageList({
           <ChatMessage
             key={index}
             showTimeStamp={showTimeStamps}
+	    setToolApprovalResponse={setToolApprovalResponse}
             {...message}
             {...additionalOptions}
           />

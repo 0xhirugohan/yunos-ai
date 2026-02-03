@@ -9,11 +9,17 @@ import {
 } from "ai";
 import type { UIMessage } from "ai";
 
-import { weatherTool } from "@/tool";
+import {
+  weatherTool,
+  askForConfirmationTool,
+  getLocationTool,
+} from "@/tool";
 import { SYSTEM_PROMPTS, MODEL_NAME } from "@/constant";
 
 const tools = {
   weather_tool: weatherTool,
+  ask_for_confirmation_tool: askForConfirmationTool,
+  get_location_tool: getLocationTool,
 };
 
 const vercelAiChatHandler = async req => {
@@ -51,7 +57,7 @@ const vercelAiStreamHandler = async req => {
     system: SYSTEM_PROMPTS.join(" "),
     messages: await convertToModelMessages(messages),
     tools,
-    toolChoice: ["weather_tool"],
+    toolChoice: ["weather_tool", "get_location_tool"],
   });
 
   return response.toUIMessageStreamResponse();

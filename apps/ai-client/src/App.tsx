@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AITester } from "./AITester";
 import { ChatbotUI } from "./ChatbotUI";
 import "./index.css";
 
@@ -30,7 +29,6 @@ export function App() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-	  {/*<AITester />*/}
 	  <ChatbotUI />
         </CardContent>
       </Card>

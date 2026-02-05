@@ -11,16 +11,21 @@ import {PoolId} from "v4-core/types/PoolId.sol";
 import {Currency} from "v4-core/types/Currency.sol";
 
 import {IHooks} from "v4-core/interfaces/IHooks.sol";
-import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
+// import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IPoolInitializer_v4} from "v4-periphery/src/interfaces/IPoolInitializer_v4.sol";
+import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 
 // v4-core/=lib/v4-core/src/
 
 contract CreatePoolScript is Script {
+    bytes[] public params = new bytes[](2);
     USDY public usdy;
     XAUY public xauy;
     // unichain PoolManager
     address public manager = 0x00B036B58a818B1BC34d502D3fE730Db729e62AC;
+
+    error FailToTransfer();
 
     function setUp() public {}
 
@@ -31,8 +36,9 @@ contract CreatePoolScript is Script {
 	xauy = new XAUY();
 
 	// transfer to dev address for test
-	IERC20(usdy).transfer(0x0d76b138023D1B901a155f491CE245736729893a, 100);
-	IERC20(xauy).transfer(0x0d76b138023D1B901a155f491CE245736729893a, 100);
+	bool transferUsdySuccess = IERC20(usdy).transfer(0x0d76b138023D1B901a155f491CE245736729893a, 100);
+	bool transferXauySuccess = IERC20(xauy).transfer(0x0d76b138023D1B901a155f491CE245736729893a, 100);
+	if (!transferUsdySuccess || !transferXauySuccess) revert FailToTransfer();
 
 	address currency0 = address(usdy);
 	address currency1 = address(xauy);
@@ -43,8 +49,8 @@ contract CreatePoolScript is Script {
 	}
 
 	PoolKey memory pool = PoolKey({
-	  currency0: Currency.wrap(address(usdy)),
-	  currency1: Currency.wrap(address(xauy)),
+	  currency0: Currency.wrap(address(currency0)),
+	  currency1: Currency.wrap(address(currency1)),
 	  fee: 100,
 	  tickSpacing: 1,
 	  hooks: IHooks(address(0))
@@ -56,7 +62,39 @@ contract CreatePoolScript is Script {
 
 	// hardcode 1:1
 	uint160 startingPrice = 79228162514264337593543950336;
-	IPoolManager(manager).initialize(pool, startingPrice);
+	// initialize the pool with starting price
+	// IPoolManager(manager).initialize(pool, startingPrice);
+
+        params[0] = abi.encodeWithSelector(
+	  IPoolInitializer_v4.initializePool.selector,
+	  pool,
+	  startingPrice
+	);
+
+	bytes memory actions = abi.encodePacked(
+	  uint8(Actions.MINT_POSITION),
+	  uint8(Actions.SETTLE_PAIR)
+	);
+	bytes[] memory mintParams = new bytes[](2);
+	mintParams[0] = abi.encode(
+	  pool,
+          -887272,
+	  887272,
+	  1e18,
+	  type(uint256).max,
+	  type(uint256).max,
+	  msg.sender,
+	  bytes("")
+	);
+	mintParams[1] = abi.encode(
+	  pool.currency0,
+	  pool.currency1,
+	);
+
+	uint256 deadline = block.timestamp + 3600;
+	params[1] = abi.encodeWithSelector(
+	  
+	);
 
         vm.stopBroadcast();
     }

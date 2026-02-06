@@ -11,9 +11,9 @@ import { Actions } from "@uniswap/v4-periphery/src/libraries/Actions.sol";
 import { IPermit2 } from "@uniswap/permit2/src/interfaces/IPermit2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { StateLibrary } from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
-import { PoolKey } from "v4-core/types/PoolKey.sol";
-import { Currency } from "v4-core/types/Currency.sol";
-import {IHooks} from "v4-core/interfaces/IHooks.sol";
+import { PoolKey } from "@uniswap/v4-core/src/types/PoolKey.sol";
+import { Currency } from "@uniswap/v4-core/src/types/Currency.sol";
+import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 
 contract GetQuoteExactInputSingleScript is Script {
   using StateLibrary for IPoolManager;
@@ -24,13 +24,6 @@ contract GetQuoteExactInputSingleScript is Script {
   address usdy = 0x215d899341832F1bFD18D44734CbC57841dA24Ad;
   address xauy = 0xE687db5641A7C6269d5cD14d43bf4304096239bF;
   address runner = 0xECcEfbCE887DBdc1c393A409BaAb153F3380a364;
-  PoolKey public key = PoolKey({
-    currency0: Currency.wrap(address(usdy)),
-    currency1: Currency.wrap(address(xauy)),
-    fee: 100,
-    tickSpacing: 1,
-    hooks: IHooks(address(0))
-  });
 
   function setUp() public {}
 
@@ -39,6 +32,13 @@ contract GetQuoteExactInputSingleScript is Script {
 
     uint128 amountIn = 1e17;
     uint128 minAmountOut = 0;
+    PoolKey memory key = PoolKey({
+      currency0: Currency.wrap(address(usdy)),
+      currency1: Currency.wrap(address(xauy)),
+      fee: 100,
+      tickSpacing: 1,
+      hooks: IHooks(address(0))
+    });
 
     // approve first
     IERC20(usdy).approve(address(permit2), type(uint256).max);

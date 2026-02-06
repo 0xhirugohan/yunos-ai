@@ -67,3 +67,21 @@ $ anvil --help
 $ cast --help
 
 ```
+
+Deployment
+
+```
+== Logs ==                                                                                                                            
+  PoolKey generated                                                                                                                   
+  0x925d7ab165b4384b859639675dc491d901ff2fb280266d567a269a3fd0944395                                                                  
+  =============                                                                                                                       
+  PoolId                                                                                                                              
+  0x925d7ab165b4384b859639675dc491d901ff2fb280266d567a269a3fd0944395                                                                  
+  =============                                                                                                                       
+  XAUY Address:                                                                                                                       
+  0xE687db5641A7C6269d5cD14d43bf4304096239bF                                                                                          
+  =============                                                                                                                       
+  USDY Address:                                                                                                                       
+  0x215d899341832F1bFD18D44734CbC57841dA24Ad                                                                                          
+  =============
+```

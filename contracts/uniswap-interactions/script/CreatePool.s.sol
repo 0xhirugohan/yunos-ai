@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.26;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
@@ -9,21 +9,24 @@ import {XAUY} from "../src/XAUY.sol";
 import {PoolKey} from "v4-core/types/PoolKey.sol";
 import {PoolId} from "v4-core/types/PoolId.sol";
 import {Currency} from "v4-core/types/Currency.sol";
+import {Actions} from "v4-periphery/src/libraries/Actions.sol";
+import {PositionManager} from "v4-periphery/src/PositionManager.sol";
 
 import {IHooks} from "v4-core/interfaces/IHooks.sol";
 // import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPoolInitializer_v4} from "v4-periphery/src/interfaces/IPoolInitializer_v4.sol";
-import {Actions} from "v4-periphery/src/libraries/Actions.sol";
-
-// v4-core/=lib/v4-core/src/
+import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
+import {IAllowanceTransfer} from "v4-periphery/lib/permit2/src/interfaces/IAllowanceTransfer.sol";
 
 contract CreatePoolScript is Script {
     bytes[] public params = new bytes[](2);
     USDY public usdy;
     XAUY public xauy;
     // unichain PoolManager
-    address public manager = 0x00B036B58a818B1BC34d502D3fE730Db729e62AC;
+    address public poolManager = 0x00B036B58a818B1BC34d502D3fE730Db729e62AC;
+    address payable public positionManager = payable(0xf969Aee60879C54bAAed9F3eD26147Db216Fd664);
+    address public permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     error FailToTransfer();
 
@@ -63,7 +66,7 @@ contract CreatePoolScript is Script {
 	// hardcode 1:1
 	uint160 startingPrice = 79228162514264337593543950336;
 	// initialize the pool with starting price
-	// IPoolManager(manager).initialize(pool, startingPrice);
+	// IPoolManager(poolManager).initialize(pool, startingPrice);
 
         params[0] = abi.encodeWithSelector(
 	  IPoolInitializer_v4.initializePool.selector,
@@ -80,7 +83,7 @@ contract CreatePoolScript is Script {
 	  pool,
           -887272,
 	  887272,
-	  1e18,
+	  1e18, // this is the amount of token to be deposited to LP
 	  type(uint256).max,
 	  type(uint256).max,
 	  msg.sender,
@@ -88,14 +91,45 @@ contract CreatePoolScript is Script {
 	);
 	mintParams[1] = abi.encode(
 	  pool.currency0,
-	  pool.currency1,
+	  pool.currency1
 	);
 
 	uint256 deadline = block.timestamp + 3600;
 	params[1] = abi.encodeWithSelector(
-	  
+	  IPositionManager(positionManager).modifyLiquidities.selector,
+	  abi.encode(actions, mintParams),
+	  deadline
 	);
 
+        IERC20(address(usdy)).approve(address(permit2), type(uint256).max);
+	IAllowanceTransfer(address(permit2)).approve(
+	  address(usdy),
+	  address(positionManager),
+	  type(uint160).max,
+	  type(uint48).max
+	);
+	
+	IERC20(address(xauy)).approve(address(permit2), type(uint256).max);
+	IAllowanceTransfer(address(permit2)).approve(
+	  address(xauy),
+	  address(positionManager),
+	  type(uint160).max,
+	  type(uint48).max
+	);
+
+	PositionManager(positionManager).multicall(params);
+
+	console.log("=============");
+	console.log("PoolId");
+	console.logBytes32(PoolId.unwrap(poolId));
+	console.log("=============");
+	console.log("XAUY Address:");
+	console.logAddress(address(xauy));
+	console.log("=============");
+	console.log("USDY Address:");
+	console.logAddress(address(usdy));
+	console.log("=============");
+	  
         vm.stopBroadcast();
     }
 }

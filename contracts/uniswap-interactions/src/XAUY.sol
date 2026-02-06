@@ -1,4 +1,4 @@
-pragma solidity 0.8.24; //Do not change the solidity version as it negatively impacts submission grading
+pragma solidity ^0.8.24; //Do not change the solidity version as it negatively impacts submission grading
 // SPDX-License-Identifier: MIT
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";

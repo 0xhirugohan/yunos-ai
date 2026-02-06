@@ -22,6 +22,7 @@
     "@tanstack/ai-client": "^0.3.0",
     "@tanstack/ai-openrouter": "^0.3.0",
     "@tanstack/ai-react": "^0.3.0",
+    "@tanstack/react-query": "^5.90.20",
     "@uniswap/sdk-core": "^7.10.1",
     "@uniswap/v4-sdk": "^1.27.0",
     "ai": "^6.0.67",
@@ -42,6 +43,8 @@
     "shiki": "1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "viem": "2.x",
+    "wagmi": "^3.4.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

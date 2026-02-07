@@ -10,6 +10,8 @@ import {
 import type { UIMessage } from "ai";
 
 import {
+  connectWalletTool,
+  getConnectedWalletAddressTool,
   weatherTool,
   askForConfirmationTool,
   getLocationTool,
@@ -17,9 +19,11 @@ import {
 import { SYSTEM_PROMPTS, MODEL_NAME } from "@/constant";
 
 const tools = {
-  weather_tool: weatherTool,
-  ask_for_confirmation_tool: askForConfirmationTool,
-  get_location_tool: getLocationTool,
+  connect_wallet_tool: connectWalletTool,
+  get_connected_wallet_address_tool: getConnectedWalletAddressTool,
+  // weather_tool: weatherTool,
+  // ask_for_confirmation_tool: askForConfirmationTool,
+  // get_location_tool: getLocationTool,
 };
 
 const vercelAiChatHandler = async req => {
@@ -57,7 +61,7 @@ const vercelAiStreamHandler = async req => {
     system: SYSTEM_PROMPTS.join(" "),
     messages: await convertToModelMessages(messages),
     tools,
-    toolChoice: ["weather_tool", "get_location_tool"],
+    toolChoice: ["connect_wallet_tool", "get_connected_wallet_address_tool"],
   });
 
   return response.toUIMessageStreamResponse();

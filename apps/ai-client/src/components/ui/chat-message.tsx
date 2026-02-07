@@ -337,7 +337,6 @@ function ToolCall({
   return (
     <div className="flex flex-col items-start gap-2">
       {toolInvocations.map((invocation, index) => {
-	console.log({ invocation, index });
         const isCancelled =
           invocation.state === "result" &&
           invocation.result.__cancelled === true

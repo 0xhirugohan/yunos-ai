@@ -25,7 +25,6 @@ export function App() {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <div className="container mx-auto p-8 text-center relative z-10">
-	  <ConnectWallet />
           <div className="flex justify-center items-center gap-8 mb-8">
             <img
               src={logo}
@@ -47,7 +46,12 @@ export function App() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-	      <ChatbotUI />
+	      <div className="grid grid-cols-3 gap-x-4">
+	        <ConnectWallet />
+		<div className="col-span-2">
+	        <ChatbotUI />
+		</div>
+	      </div>
             </CardContent>
           </Card>
         </div>

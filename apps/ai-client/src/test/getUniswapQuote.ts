@@ -33,7 +33,7 @@ const CurrentConfig: SwapExactInSingle = {
     hooks: "0x0000000000000000000000000000000000000000",
   },
   zeroForOne: true,
-  amountIn: parseUnits("0.01", XAUY_TOKEN.decimals).toString(),
+  amountIn: parseUnits("1", XAUY_TOKEN.decimals).toString(),
   amountOutMinimum: "0",
   hookData: "0x00",
 };

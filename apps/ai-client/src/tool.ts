@@ -52,8 +52,36 @@ const weatherTool = tool({
   },
 });
 
+const connectWalletTool = tool({
+  name: "Connect Wallet Tool",
+  description: "Let user to connect their crypto wallet to this site. Run `get_connected_wallet_address_tool` first, and if its not connected then run this `connect_wallet_tool` tool.`",
+  inputSchema: z.object({}),
+  outputSchema: z.object({
+    address: z.string(),
+    isConnected: z.boolean(),
+  }),
+  strict: true,
+  needsApproval: true,
+});
+
+const getConnectedWalletAddressTool = tool({
+  name: "Get Connected Wallet Address Tool",
+  description: "Get connected wallet address if user already connected their wallet to this site. If it returns empty string, it means the wallet is not connected.",
+  inputSchema: z.object({}),
+  /*
+  outputSchema: z.object({
+    address: z.string(),
+    isConnected: z.boolean(),
+  }),
+  */
+  strict: true,
+  needsApproval: true,
+});
+
 export {
   weatherTool,
   askForConfirmationTool,
   getLocationTool,
+  connectWalletTool,
+  getConnectedWalletAddressTool,
 };
